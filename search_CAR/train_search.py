@@ -118,10 +118,10 @@ def main():
             normalize,
         ]))
 
-    num_train = len(train_data)  # 50000
+    num_train = len(train_data)  
     print(num_train)
     indices = list(range(num_train))
-    split = int(np.floor(args.train_portion * num_train))  # 25000
+    split = int(np.floor(args.train_portion * num_train))  
 
     train_queue = torch.utils.data.DataLoader(
         train_data, batch_size=args.batchsz,
