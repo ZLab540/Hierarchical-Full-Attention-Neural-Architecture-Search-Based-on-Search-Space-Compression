@@ -152,13 +152,19 @@ class NetworkCIFAR(nn.Module):
 
         stem_multiplier = 1
         C_curr = stem_multiplier * C
+        
+        #conv stem
+#         self.stem = nn.Sequential(
+#             nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
+#             nn.BatchNorm2d(C_curr),
+#         )
+        
+        #attention stem
         self.stem = nn.Sequential(
-            nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
+            AttentionStem(3, C_curr, kernel_size=3, stride=1, padding=2, groups=1),
             nn.BatchNorm2d(C_curr),
-            # nn.Conv2d(C_curr, 96, kernel_size=1, bias=False),
-            # nn.BatchNorm2d(96),
-            # nn.ReLU(),
         )
+
         # C_curr = 96
         # C = C_curr
 
