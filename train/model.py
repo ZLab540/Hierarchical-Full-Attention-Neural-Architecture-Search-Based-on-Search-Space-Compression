@@ -157,12 +157,14 @@ class NetworkCIFAR(nn.Module):
 #         self.stem = nn.Sequential(
 #             nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
 #             nn.BatchNorm2d(C_curr),
+#             nn.ReLU(),
 #         )
         
         #attention stem
         self.stem = nn.Sequential(
             AttentionStem(3, C_curr, kernel_size=3, stride=1, padding=2, groups=1),
             nn.BatchNorm2d(C_curr),
+            nn.ReLU(),
         )
 
         # C_curr = 96
