@@ -4,8 +4,6 @@ from    train_operations import *
 from    utils import drop_path
 from attention import AttentionStem
 
-
-
 class Cell(nn.Module):
 
     def __init__(self, genotype, C_prev, C, reduction,  normal1, normal2, normal3, reduction1, reduction2,reduction_prev):
@@ -153,14 +151,14 @@ class NetworkCIFAR(nn.Module):
         stem_multiplier = 1
         C_curr = stem_multiplier * C
         
-        #conv stem
+        #stem
 #         self.stem = nn.Sequential(
 #             nn.Conv2d(3, C_curr, 3, padding=1, bias=False),
 #             nn.BatchNorm2d(C_curr),
 #             nn.ReLU(),
 #         )
         
-        #attention stem
+        #stem
         self.stem = nn.Sequential(
             AttentionStem(3, C_curr, kernel_size=3, stride=1, padding=1, groups=1),
             nn.BatchNorm2d(C_curr),
@@ -247,7 +245,7 @@ class NetworkImageNet(nn.Module):
         self._layers = layers
         self._auxiliary = auxiliary
 
-        #conv-stem
+        #stem
         self.stem0 = nn.Sequential(
             nn.Conv2d(3, C // 2, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(C // 2),
@@ -262,7 +260,7 @@ class NetworkImageNet(nn.Module):
             nn.BatchNorm2d(C),
         )
 
-        # attention-stem
+        # stem
         # self.stem0 = nn.Sequential(
         #     AttentionStem(3, C//2, kernel_size=3, stride=1, padding=1, groups=1),
         #     nn.BatchNorm2d(C // 2),
