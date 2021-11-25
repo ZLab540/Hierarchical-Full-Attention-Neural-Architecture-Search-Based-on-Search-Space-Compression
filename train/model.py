@@ -240,66 +240,114 @@ class NetworkCIFAR(nn.Module):
 
 
 
+class NetworkImageNet(nn.Module):
 
+    def __init__(self, C, num_classes, layers, auxiliary, genotype):
+        super(NetworkImageNet, self).__init__()
+        self._layers = layers
+        self._auxiliary = auxiliary
 
+        #conv-stem
+        self.stem0 = nn.Sequential(
+            nn.Conv2d(3, C // 2, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C // 2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(C // 2, C, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C),
+        )
+        
+        self.stem1 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv2d(C, C, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(C),
+        )
 
-
-
-
-
-#
-# class NetworkImageNet(nn.Module):
-#
-#     def __init__(self, C, num_classes, layers, auxiliary, genotype):
-#         super(NetworkImageNet, self).__init__()
-#         self._layers = layers
-#         self._auxiliary = auxiliary
-#
+        #attention-stem
 #         self.stem0 = nn.Sequential(
-#             nn.Conv2d(3, C // 2, kernel_size=3, stride=2, padding=1, bias=False),
+#             AttentionStem(3, C//2, kernel_size=3, stride=1, padding=2, groups=1),
 #             nn.BatchNorm2d(C // 2),
 #             nn.ReLU(inplace=True),
-#             nn.Conv2d(C // 2, C, 3, stride=2, padding=1, bias=False),
+#             nn.MaxPool2d(3, 2),
+#             AttentionStem(C//2, C, kernel_size=3, stride=1, padding=2, groups=1),
 #             nn.BatchNorm2d(C),
+#             nn.MaxPool2d(3, 2),
 #         )
-#
+
 #         self.stem1 = nn.Sequential(
 #             nn.ReLU(inplace=True),
-#             nn.Conv2d(C, C, 3, stride=2, padding=1, bias=False),
+#             AttentionStem(C, C, kernel_size=3, stride=1, padding=2, groups=1),
 #             nn.BatchNorm2d(C),
+#             nn.MaxPool2d(3, 2),
 #         )
-#
-#         C_prev_prev, C_prev, C_curr = C, C, C
-#
-#         self.cells = nn.ModuleList()
-#         reduction_prev = True
-#         for i in range(layers):
-#             if i in [layers // 3, 2 * layers // 3]:
-#                 C_curr *= 2
-#                 reduction = True
-#             else:
-#                 reduction = False
-#             cell = Cell(genotype, C_prev_prev, C_prev, C_curr, reduction, reduction_prev)
-#             reduction_prev = reduction
-#             self.cells += [cell]
-#             C_prev_prev, C_prev = C_prev, cell.multiplier * C_curr
-#             if i == 2 * layers // 3:
-#                 C_to_auxiliary = C_prev
-#
-#         if auxiliary:
-#             self.auxiliary_head = AuxiliaryHeadImageNet(C_to_auxiliary, num_classes)
-#         self.global_pooling = nn.AvgPool2d(7)
-#         self.classifier = nn.Linear(C_prev, num_classes)
-#
-#     def forward(self, input):
-#         logits_aux = None
-#         s0 = self.stem0(input)
-#         s1 = self.stem1(s0)
-#         for i, cell in enumerate(self.cells):
-#             s0, s1 = s1, cell(s0, s1, self.drop_path_prob)
-#             if i == 2 * self._layers // 3:
-#                 if self._auxiliary and self.training:
-#                     logits_aux = self.auxiliary_head(s1)
-#         out = self.global_pooling(s1)
-#         logits = self.classifier(out.view(out.size(0), -1))
-#         return logits, logits_aux
+
+        C_prev, C_curr = C, C
+        self.cells = nn.ModuleList()
+        reduction_prev = False
+        for i in range(layers):
+            if i in [1,3]:
+                C_curr *= 2
+                reduction = True
+            else:
+                reduction = False
+
+            if i in [0]:
+                normal1 = True
+                reduction1 = False
+                normal2 = False
+                reduction2 = False
+                normal3 = False
+            elif i in [1]:
+                normal1 = False
+                reduction1 = True
+                normal2 = False
+                reduction2 = False
+                normal3 = False
+            elif i in [2]:
+                normal1 = False
+                reduction1 = False
+                normal2 = True
+                reduction2 = False
+                normal3 = False
+            elif i in [3]:
+                normal1 = False
+                reduction1 = False
+                normal2 = False
+                reduction2 = True
+                normal3 = False
+            elif i in [4]:
+                normal1 = False
+                reduction1 = False
+                normal2 = False
+                reduction2 = False
+                normal3 = True
+
+            cell = Cell(genotype, C_prev, C_curr, reduction, normal1, normal2, normal3, reduction1, reduction2, reduction_prev)
+            reduction_prev = reduction
+            self.cells += [cell]
+            C_prev = C_curr
+            if i == 2 * layers // 3:
+                C_to_auxiliary = C_prev
+
+        if auxiliary:
+            self.auxiliary_head = AuxiliaryHeadImageNet(C_to_auxiliary, num_classes)
+        self.global_pooling = nn.AvgPool2d(7)
+        self.dropout = nn.Dropout(p=0.25)
+        self.classifier = nn.Linear(C_prev, num_classes)
+
+    def forward(self, input):
+        logits_aux = None
+        s0 = self.stem0(input)
+        s1 = self.stem1(s0)
+        # s1 = self.stem(input)
+        for i, cell in enumerate(self.cells):
+            s1 = cell(s1, self.drop_path_prob)
+            if i == 2 * self._layers // 3:
+                if self._auxiliary and self.training:
+                    logits_aux = self.auxiliary_head(s1)
+        out = self.global_pooling(s1)
+        out = self.dropout(out)
+        logits = self.classifier(out.view(out.size(0), -1))
+        return logits, logits_aux
+
+
+
