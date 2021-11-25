@@ -144,7 +144,7 @@ class Network(nn.Module):
         c_curr = stem_multiplier * c # 64
         # stem network, convert 3 channel to c_curr
         self.stem = nn.Sequential(
-            AttentionStem(3, c_curr, kernel_size=4, stride=1, padding=2, groups=1),
+            AttentionStem(3, c_curr, kernel_size=3, stride=1, padding=1, groups=1),
             nn.BatchNorm2d(c_curr),
         )
 
