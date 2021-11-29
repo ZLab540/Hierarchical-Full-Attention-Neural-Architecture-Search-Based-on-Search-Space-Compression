@@ -193,50 +193,13 @@ class Network(nn.Module):
         return model_new
 
     def forward(self, x):
-        """
-        in: torch.Size([3, 3, 32, 32])
-        stem: torch.Size([3, 48, 32, 32])
-        cell: 0 torch.Size([3, 64, 32, 32]) False
-        cell: 1 torch.Size([3, 64, 32, 32]) False
-        cell: 2 torch.Size([3, 128, 16, 16]) True
-        cell: 3 torch.Size([3, 128, 16, 16]) False
-        cell: 4 torch.Size([3, 128, 16, 16]) False
-        cell: 5 torch.Size([3, 256, 8, 8]) True
-        cell: 6 torch.Size([3, 256, 8, 8]) False
-        cell: 7 torch.Size([3, 256, 8, 8]) False
-        pool:   torch.Size([16, 256, 1, 1])
-        linear: [b, 10]
-        :param x:
-        :return:
-        """
         # print('in:', x.shape)
         # s0 & s1 means the last cells' output
-        s1 = self.stem(x) # [b, 3, 32, 32] => [b, 48, 32, 32]
+        s1 = self.stem(x) 
         # print('stem:', s1.shape)
         # print('stem:', s1.shape)
 
         for i, cell in enumerate(self.cells):
-            # weights are shared across all reduction cell or normal cell
-            # according to current cell's type, it choose which architecture parameters
-            # to use
-            # if cell.reduction: # if current cell is reduction cell
-            #     if i == 2:
-            #         weights = F.softmax(self.alpha_reduce1, dim=-1)
-            #     if i == 5:
-            #         weights = F.softmax(self.alpha_reduce2, dim=-1)
-            # else:
-            #     if i == 0:
-            #         weights = F.softmax(self.alpha_normal1, dim=-1)
-            #     if i == 1:
-            #         weights = F.softmax(self.alpha_normal1, dim=-1)
-            #     if i == 3:
-            #         weights = F.softmax(self.alpha_normal2, dim=-1)
-            #     if i == 4:
-            #         weights = F.softmax(self.alpha_normal2, dim=-1)
-            #     if i == 6:
-            #         weights = F.softmax(self.alpha_normal3, dim=-1)
-            #     if i == 7:
-            #         weights = F.softmax(self.alpha_normal3, dim=-1)
             if cell.reduction: # if current cell is reduction cell
                 if i == 1:
                     weights = F.softmax(self.alpha_reduce1, dim=-1)
