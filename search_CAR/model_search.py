@@ -185,11 +185,6 @@ class Network(nn.Module):
         self.conv2 = nn.Sequential(nn.Conv2d(80, 32, kernel_size=3, stride=1, padding=1, bias=False),
                                    nn.BatchNorm2d(32),
                                    nn.Conv2d(32, 3, kernel_size=1, stride=1))
-        # self.head = nn.Sequential(
-        #     nn.Conv2d(cp, 3, kernel_size=1, bias=False),
-        #     nn.BatchNorm2d(3),
-        #     nn.Tanh(),
-        # )
 
         self._initialize_alphas()
         # k is the total number of edges inside single cell, 14
@@ -207,22 +202,6 @@ class Network(nn.Module):
         return model_new
 
     def forward(self, x):
-        """
-        in: torch.Size([3, 3, 32, 32])
-        stem: torch.Size([3, 48, 32, 32])
-        cell: 0 torch.Size([3, 64, 32, 32]) False
-        cell: 1 torch.Size([3, 64, 32, 32]) False
-        cell: 2 torch.Size([3, 128, 16, 16]) True
-        cell: 3 torch.Size([3, 128, 16, 16]) False
-        cell: 4 torch.Size([3, 128, 16, 16]) False
-        cell: 5 torch.Size([3, 256, 8, 8]) True
-        cell: 6 torch.Size([3, 256, 8, 8]) False
-        cell: 7 torch.Size([3, 256, 8, 8]) False
-        pool:   torch.Size([16, 256, 1, 1])
-        linear: [b, 10]
-        :param x:
-        :return:
-        """
         # print('in:', x.shape)
         # s0 & s1 means the last cells' output
         # print(x.size())
