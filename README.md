@@ -1,3 +1,2 @@
-# Full-attention based Neural Architecture Search using Context Auto-regression
-
-Source code for our submission "Full-attention based Neural Architecture Search using Context Auto-regression".
+# Hierarchical Full-Attention Neural Architecture Search Based on Search Space Compression
+Source code for our submission "Hierarchical Full-Attention Neural Architecture Search Based on Search Space Compression".
